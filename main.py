@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session 
 from database import * 
 from models import *
@@ -6,7 +7,20 @@ from typing import List
 
 app = FastAPI()
 
-@app.post('/create_user/', response_model = UserRead)
+origins = [
+    "http://localhost:8080",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post('/user', response_model = UserRead)
 async def create_user(item: UserCreate, db: Session = Depends(get_db)):
     
     db_item = UserDB(**item.model_dump()) # Convertendo o modelo pydantic para um dicionario
@@ -16,7 +30,7 @@ async def create_user(item: UserCreate, db: Session = Depends(get_db)):
     
     return db_item
 
-@app.put('/update_user/{user_id}', response_model = UserRead)
+@app.put('/user/{user_id}', response_model = UserRead)
 async def update_item(user_id: int, upd_user: UserUpdate, db: Session = Depends(get_db)):
     
     # Busca no banco de dados o item cujo id seja o equivalente ao do banco e retorna o primeiro item encontrado
@@ -37,7 +51,7 @@ async def update_item(user_id: int, upd_user: UserUpdate, db: Session = Depends(
     
     return db_item
 
-@app.delete('/get_user/{user_id}', response_model = UserRead)
+@app.delete('/user/{user_id}', response_model = UserRead)
 async def get_item(user_id: int, db: Session = Depends(get_db)):
     
     db_item = db.query(UserDB).filter(UserDB.id == user_id).first()
@@ -49,17 +63,17 @@ async def get_item(user_id: int, db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code = 404, detail = "Usuário não encontrado")
     
-@app.get('/get_user/{user_id}', response_model = UserRead)
-async def get_item(user_id: int, db: Session = Depends(get_db)):
+# @app.get('/get_user/{user_id}', response_model = UserRead)
+# async def get_item(user_id: int, db: Session = Depends(get_db)):
     
-    db_item = db.query(UserDB).filter(UserDB.id == user_id).first()
+#     db_item = db.query(UserDB).filter(UserDB.id == user_id).first()
     
-    if db_item is None:
-        raise HTTPException(status_code = 404, detail = "Usuário não encontrado")
+#     if db_item is None:
+#         raise HTTPException(status_code = 404, detail = "Usuário não encontrado")
     
-    return db_item
+#     return db_item
 
-@app.get('/get_all_users', response_model = List[UserRead])
+@app.get('/user', response_model = List[UserRead])
 async def get_all_users(db: Session = Depends(get_db)):
     
     db_items = db.query(UserDB).all()

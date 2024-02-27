@@ -24,7 +24,8 @@ class UserRead(BaseModel):
 class UserUpdate(BaseModel):
     name: str
     username: str
-    password: str   
+    password: str 
+    email: str  
     
 # Modelo pydantic que contém todos os campos
 class User(UserCreate, UserUpdate):
